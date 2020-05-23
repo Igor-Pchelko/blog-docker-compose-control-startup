@@ -1,0 +1,34 @@
+version: '3.4'
+services:
+  #
+  # MSSQL
+  #
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "1234567_A"
+      MSSQL_PID: Express
+      DATABASE: "phonebookdatabase"
+    ports:
+      - "1433:1433"
+      - "1444"
+    volumes:
+      - "./mssql/scripts:/tmp/scripts:ro"      
+    command: /bin/bash /tmp/scripts/entrypoint.sh
+  # 
+  # PhoneBookWriter
+  # 
+  service:
+    image: phone-book-writer:latest
+    build:
+      context: .
+      dockerfile: PhoneBookWriter/Dockerfile
+    environment:
+      SA_PASSWORD: "1234567_A"
+      DATABASE: "phonebookdatabase"
+    volumes:
+      - "./PhoneBookWriter/scripts:/tmp/scripts:ro"
+    command: /bin/bash /tmp/scripts/entrypoint.sh
+    depends_on:
+      - "mssql"
